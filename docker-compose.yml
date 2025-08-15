@@ -23,7 +23,6 @@ services:
   stats-server:
     build:
       context: ./stats-service
-      target: runtime
     container_name: stats-server
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://stats-db:5432/stats
