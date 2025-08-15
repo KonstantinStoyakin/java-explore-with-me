@@ -22,9 +22,7 @@ import java.util.Objects;
 
 public class StatsClient {
     private final RestTemplate rest;
-
     private final String serverUrl;
-
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     public StatsClient(String serverUrl, RestTemplate restTemplate) {
@@ -55,8 +53,9 @@ public class StatsClient {
         }
 
         ResponseEntity<ViewStats[]> response = get(path, parameters);
-        return response.getStatusCode().is2xxSuccessful() ? Arrays.
-                asList(Objects.requireNonNull(response.getBody())) : Collections.emptyList();
+        return response.getStatusCode().is2xxSuccessful()
+                ? Arrays.asList(Objects.requireNonNull(response.getBody()))
+                : Collections.emptyList();
     }
 
     private ResponseEntity<ViewStats[]> get(String path, Map<String, Object> parameters) {
@@ -73,8 +72,12 @@ public class StatsClient {
 
         ResponseEntity<T> response;
         try {
-            response = rest.exchange(serverUrl + path, method, requestEntity,
-                    (Class<T>) (body == null ? ViewStats[].class : Void.class), parameters);
+            response = rest.exchange(
+                    serverUrl + path,
+                    method,
+                    requestEntity,
+                    (Class<T>) (body == null ? ViewStats[].class : Void.class),
+                    parameters);
         } catch (HttpStatusCodeException e) {
             return ResponseEntity.status(e.getStatusCode()).build();
         }
