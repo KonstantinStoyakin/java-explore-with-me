@@ -27,16 +27,21 @@ public class StatsClient {
 
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    public StatsClient(String serverUrl) {
+    public StatsClient(String serverUrl, RestTemplate restTemplate) {
         this.serverUrl = serverUrl;
-        this.rest = new RestTemplate();
+        this.rest = restTemplate;
+    }
+
+    public StatsClient(String serverUrl) {
+        this(serverUrl, new RestTemplate());
     }
 
     public void addHit(EndpointHit hit) {
         post("/hit", hit);
     }
 
-    public List<ViewStats> getStats(LocalDateTime start, LocalDateTime end, @Nullable List<String> uris, boolean unique) {
+    public List<ViewStats> getStats(LocalDateTime start, LocalDateTime end, @Nullable List<String> uris,
+                                    boolean unique) {
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("start", start.format(FORMATTER));
         parameters.put("end", end.format(FORMATTER));
@@ -50,7 +55,8 @@ public class StatsClient {
         }
 
         ResponseEntity<ViewStats[]> response = get(path, parameters);
-        return response.getStatusCode().is2xxSuccessful() ? Arrays.asList(Objects.requireNonNull(response.getBody())) : Collections.emptyList();
+        return response.getStatusCode().is2xxSuccessful() ? Arrays.
+                asList(Objects.requireNonNull(response.getBody())) : Collections.emptyList();
     }
 
     private ResponseEntity<ViewStats[]> get(String path, Map<String, Object> parameters) {
@@ -61,12 +67,14 @@ public class StatsClient {
         makeAndSendRequest(HttpMethod.POST, path, Collections.emptyMap(), body);
     }
 
-    private <T> ResponseEntity<T> makeAndSendRequest(HttpMethod method, String path, Map<String, Object> parameters, @Nullable EndpointHit body) {
+    private <T> ResponseEntity<T> makeAndSendRequest(HttpMethod method, String path, Map<String, Object> parameters,
+                                                     @Nullable EndpointHit body) {
         HttpEntity<EndpointHit> requestEntity = new HttpEntity<>(body, defaultHeaders());
 
         ResponseEntity<T> response;
         try {
-            response = rest.exchange(serverUrl + path, method, requestEntity, (Class<T>) (body == null ? ViewStats[].class : Void.class), parameters);
+            response = rest.exchange(serverUrl + path, method, requestEntity,
+                    (Class<T>) (body == null ? ViewStats[].class : Void.class), parameters);
         } catch (HttpStatusCodeException e) {
             return ResponseEntity.status(e.getStatusCode()).build();
         }
