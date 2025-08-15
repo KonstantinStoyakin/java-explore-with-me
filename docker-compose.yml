@@ -1,14 +1,45 @@
 services:
+  stats-db:
+    image: postgres:16.1-alpine
+    container_name: stats-db
+    environment:
+      POSTGRES_DB: stats
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - stats-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d stats"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
   stats-server:
+    build:
+      context: ./stats-service
+      target: runtime
+    container_name: stats-server
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://stats-db:5432/stats
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      JAVA_TOOL_OPTIONS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9091"
     ports:
       - "9090:9090"
+      - "9091:9091"
+    depends_on:
+      stats-db:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 768M
 
-  stats-db:
-    image: postgres:16.1
-
-  ewm-service:
-    ports:
-      - "8080:8080"
-
-  ewm-db:
-    image: postgres:16.1
+volumes:
+  stats-db-data:
