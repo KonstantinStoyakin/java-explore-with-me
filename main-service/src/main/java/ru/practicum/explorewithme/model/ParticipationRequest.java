@@ -22,7 +22,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "requests")
+@Table(name = "participation_requests")
 @Getter
 @Setter
 @NoArgsConstructor

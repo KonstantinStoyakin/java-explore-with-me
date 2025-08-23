@@ -3,6 +3,7 @@ package ru.practicum.explorewithme.repository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.dao.DataIntegrityViolationException;
 import ru.practicum.explorewithme.model.Category;
 import ru.practicum.explorewithme.model.Event;
 import ru.practicum.explorewithme.model.EventState;
@@ -17,6 +18,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
@@ -36,14 +38,16 @@ class RequestRepositoryTest {
 
     @Test
     void testFindAllByRequesterId() {
-        User user = createUser();
-        Event event = createEvent();
+        User user1 = createUser("user1@email.com");
+        User user2 = createUser("user2@email.com");
+        Event event1 = createEvent();
+        Event event2 = createEvent();
 
-        ParticipationRequest request1 = createRequest(user, event, RequestStatus.CONFIRMED);
-        ParticipationRequest request2 = createRequest(user, event, RequestStatus.PENDING);
+        ParticipationRequest request1 = createRequest(user1, event1, RequestStatus.CONFIRMED);
+        ParticipationRequest request2 = createRequest(user1, event2, RequestStatus.PENDING); // Разные события
         requestRepository.saveAll(List.of(request1, request2));
 
-        List<ParticipationRequest> result = requestRepository.findAllByRequesterId(user.getId());
+        List<ParticipationRequest> result = requestRepository.findAllByRequesterId(user1.getId());
 
         assertEquals(2, result.size());
     }
@@ -65,11 +69,13 @@ class RequestRepositoryTest {
 
     @Test
     void testFindAllByIdIn() {
-        User user = createUser();
-        Event event = createEvent();
+        User user1 = createUser("user1@email.com");
+        User user2 = createUser("user2@email.com");
+        Event event1 = createEvent();
+        Event event2 = createEvent();
 
-        ParticipationRequest request1 = createRequest(user, event, RequestStatus.PENDING);
-        ParticipationRequest request2 = createRequest(user, event, RequestStatus.CONFIRMED);
+        ParticipationRequest request1 = createRequest(user1, event1, RequestStatus.PENDING);
+        ParticipationRequest request2 = createRequest(user2, event2, RequestStatus.CONFIRMED); // Разные пользователи и события
         List<ParticipationRequest> saved = requestRepository.saveAll(List.of(request1, request2));
 
         List<Long> requestIds = List.of(saved.get(0).getId(), saved.get(1).getId());
@@ -83,15 +89,12 @@ class RequestRepositoryTest {
     void testCountConfirmedRequestsByEventId() {
         User user1 = createUser("user1@email.com");
         User user2 = createUser("user2@email.com");
+        User user3 = createUser("user3@email.com");
         Event event = createEvent();
 
         ParticipationRequest request1 = createRequest(user1, event, RequestStatus.CONFIRMED);
         ParticipationRequest request2 = createRequest(user2, event, RequestStatus.CONFIRMED);
-        ParticipationRequest request3 = createRequest(
-                createUser("user3@email.com"),
-                event,
-                RequestStatus.PENDING
-        );
+        ParticipationRequest request3 = createRequest(user3, event, RequestStatus.PENDING);
         requestRepository.saveAll(List.of(request1, request2, request3));
 
         Long count = requestRepository.countConfirmedRequestsByEventId(event.getId());
@@ -140,6 +143,20 @@ class RequestRepositoryTest {
         assertFalse(requestRepository.existsById(saved.getId()));
     }
 
+    @Test
+    void testUniqueConstraint() {
+        User user = createUser();
+        Event event = createEvent();
+
+        ParticipationRequest request1 = createRequest(user, event, RequestStatus.PENDING);
+        requestRepository.save(request1);
+
+        ParticipationRequest request2 = createRequest(user, event, RequestStatus.CONFIRMED);
+        assertThrows(DataIntegrityViolationException.class, () -> {
+            requestRepository.save(request2);
+        });
+    }
+
     private User createUser() {
         return createUser("test@email.com");
     }
@@ -152,7 +169,7 @@ class RequestRepositoryTest {
     }
 
     private Event createEvent() {
-        User user = createUser("event_owner@email.com");
+        User user = createUser("event_owner_" + System.currentTimeMillis() + "@email.com");
         Category category = createCategory();
 
         Event event = new Event();
@@ -172,7 +189,7 @@ class RequestRepositoryTest {
 
     private Category createCategory() {
         Category category = new Category();
-        category.setName("Test Category");
+        category.setName("Test Category " + System.currentTimeMillis());
         return categoryRepository.save(category);
     }
 
