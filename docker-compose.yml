@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   stats-db:
     image: postgres:16.1-alpine
@@ -40,5 +42,50 @@ services:
         limits:
           memory: 768M
 
+  main-db:
+    image: postgres:16.1-alpine
+    container_name: main-db
+    environment:
+      POSTGRES_DB: explore
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - main-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d explore" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  main-server:  # ← ЭТОТ СЕРВИС ДОЛЖЕН БЫТЬ НА ТОМ ЖЕ УРОВНЕ!
+    build:
+      context: ./main-service
+    container_name: main-server
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://main-db:5432/explore
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      STATS_SERVER_URL: http://stats-server:9090
+      JAVA_TOOL_OPTIONS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:9092"
+    ports:
+      - "8080:8080"
+      - "9092:9092"
+    depends_on:
+      main-db:
+        condition: service_healthy
+      stats-server:
+        condition: service_started
+    deploy:
+      resources:
+        limits:
+          memory: 768M
+
 volumes:
   stats-db-data:
+  main-db-data:
