@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   stats-db:
-    image: postgres:16.1-alpine
+    image: postgres:14-alpine
     container_name: stats-db
     environment:
       POSTGRES_DB: stats
@@ -42,9 +42,9 @@ services:
         limits:
           memory: 768M
 
-  main-db:
-    image: postgres:16.1-alpine
-    container_name: main-db
+  ewm-db:
+    image: postgres:14-alpine
+    container_name: ewm-db
     environment:
       POSTGRES_DB: explore
       POSTGRES_USER: postgres
@@ -52,7 +52,7 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - main-db-data:/var/lib/postgresql/data
+      - ewm-db-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d explore"]
       interval: 5s
@@ -63,12 +63,12 @@ services:
         limits:
           memory: 512M
 
-  main-server:
+  ewm-service:
     build:
       context: ./main-service
-    container_name: main-server
+    container_name: ewm-service
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://main-db:5432/explore
+      SPRING_DATASOURCE_URL: jdbc:postgresql://ewm-db:5432/explore
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
       STATS_SERVER_URL: http://stats-server:9090
@@ -77,7 +77,7 @@ services:
       - "8080:8080"
       - "9092:9092"
     depends_on:
-      main-db:
+      ewm-db:
         condition: service_healthy
       stats-server:
         condition: service_started
@@ -88,4 +88,4 @@ services:
 
 volumes:
   stats-db-data:
-  main-db-data:
+  ewm-db-data:
