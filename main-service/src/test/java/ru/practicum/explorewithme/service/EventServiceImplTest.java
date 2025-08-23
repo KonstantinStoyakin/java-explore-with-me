@@ -415,6 +415,7 @@ class EventServiceImplTest {
             var viewedIps = (java.util.Map<Long, java.util.Set<String>>) viewedIpsField.get(eventService);
             viewedIps.clear();
         } catch (Exception e) {
+            // intentionally empty - тестовый сценарий
         }
 
         EventFullDto result = eventService.getPublishedEvent(eventId, httpServletRequest);
@@ -448,6 +449,7 @@ class EventServiceImplTest {
             viewedIps.put(eventId, ConcurrentHashMap.newKeySet());
             viewedIps.get(eventId).add("127.0.0.1");
         } catch (Exception e) {
+            // intentionally empty - тестовый сценарий
         }
 
         EventFullDto result = eventService.getPublishedEvent(eventId, httpServletRequest);
