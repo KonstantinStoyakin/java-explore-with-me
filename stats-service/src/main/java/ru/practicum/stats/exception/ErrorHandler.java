@@ -1,6 +1,7 @@
 package ru.practicum.stats.exception;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -19,6 +20,18 @@ public class ErrorHandler {
                 "BAD_REQUEST",
                 e.getMessage(),
                 "Incorrectly made request.",
+                HttpStatus.BAD_REQUEST.name(),
+                LocalDateTime.now().format(FORMATTER)
+        );
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleMissingParams(MissingServletRequestParameterException e) {
+        return new ErrorResponse(
+                "BAD_REQUEST",
+                e.getMessage(),
+                "Required request parameter is missing.",
                 HttpStatus.BAD_REQUEST.name(),
                 LocalDateTime.now().format(FORMATTER)
         );
