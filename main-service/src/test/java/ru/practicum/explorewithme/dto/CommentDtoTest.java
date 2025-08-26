@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CommentDtoTest {
 
@@ -93,7 +94,7 @@ class CommentDtoTest {
         String toString = commentDto.toString();
 
         assertNotNull(toString);
-        assert(toString.contains("Test"));
-        assert(toString.contains("PENDING"));
+        assertTrue(toString.contains("Test"));
+        assertTrue(toString.contains("PENDING"));
     }
 }

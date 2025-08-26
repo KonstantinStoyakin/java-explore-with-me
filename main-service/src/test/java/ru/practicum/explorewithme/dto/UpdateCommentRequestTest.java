@@ -122,6 +122,6 @@ class UpdateCommentRequestTest {
         String toString = request.toString();
 
         assertNotNull(toString);
-        assert(toString.contains("Test"));
+        assertTrue(toString.contains("Test"));
     }
 }

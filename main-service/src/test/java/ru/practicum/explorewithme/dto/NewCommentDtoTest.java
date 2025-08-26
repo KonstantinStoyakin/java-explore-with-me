@@ -118,7 +118,7 @@ class NewCommentDtoTest {
         String toString = dto.toString();
 
         assertNotNull(toString);
-        assert(toString.contains("Test"));
-        assert(toString.contains("1"));
+        assertTrue(toString.contains("Test"));
+        assertTrue(toString.contains("1"));
     }
 }
