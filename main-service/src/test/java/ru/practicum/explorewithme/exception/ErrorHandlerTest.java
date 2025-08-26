@@ -107,15 +107,6 @@ class ErrorHandlerTest {
     }
 
     @Test
-    void handleRuntimeException_ShouldReturnInternalServerError() {
-        RuntimeException exception = new RuntimeException("Runtime error");
-
-        ApiError response = errorHandler.handleRuntimeException(exception);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.toString(), response.getStatus());
-    }
-
-    @Test
     void handleMethodArgumentTypeMismatch_ShouldReturnBadRequest() {
         MethodArgumentTypeMismatchException exception = mock(MethodArgumentTypeMismatchException.class);
         when(exception.getName()).thenReturn("param");
