@@ -2,6 +2,7 @@ package ru.practicum.explorewithme.exception;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import jakarta.validation.ConstraintViolationException;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -116,5 +117,38 @@ class ErrorHandlerTest {
         ApiError response = errorHandler.handleMethodArgumentTypeMismatch(exception);
 
         assertEquals(HttpStatus.BAD_REQUEST.toString(), response.getStatus());
+    }
+
+    @Test
+    void handleCommentNotFoundException_ShouldReturnNotFound() {
+        CommentNotFoundException exception = new CommentNotFoundException("Comment not found");
+
+        ApiError response = errorHandler.handleCommentNotFound(exception);
+
+        assertEquals(HttpStatus.NOT_FOUND.toString(), response.getStatus());
+        assertEquals("The requested comment was not found.", response.getReason());
+        assertEquals("Comment not found", response.getMessage());
+    }
+
+    @Test
+    void handleIllegalArgumentException_ShouldReturnBadRequest() {
+        IllegalArgumentException exception = new IllegalArgumentException("Invalid argument");
+
+        ApiError response = errorHandler.handleIllegalArgument(exception);
+
+        assertEquals(HttpStatus.BAD_REQUEST.toString(), response.getStatus());
+        assertEquals("Invalid request parameter.", response.getReason());
+        assertEquals("Invalid argument", response.getMessage());
+    }
+
+    @Test
+    void handleConstraintViolationException_ShouldReturnBadRequest() {
+        ConstraintViolationException exception = new ConstraintViolationException("Constraint violation", null);
+
+        ApiError response = errorHandler.handleConstraintViolation(exception);
+
+        assertEquals(HttpStatus.BAD_REQUEST.toString(), response.getStatus());
+        assertEquals("Validation failed.", response.getReason());
+        assertEquals("Constraint violation", response.getMessage());
     }
 }
