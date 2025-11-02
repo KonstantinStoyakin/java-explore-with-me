@@ -2,6 +2,7 @@ package ru.practicum.explorewithme.exception;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -120,17 +121,6 @@ public class ErrorHandler {
         );
     }
 
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ApiError handleRuntimeException(final RuntimeException e) {
-        return new ApiError(
-                HttpStatus.INTERNAL_SERVER_ERROR.toString(),
-                "Internal server error.",
-                e.getMessage(),
-                LocalDateTime.now().format(FORMATTER)
-        );
-    }
-
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handleMethodArgumentTypeMismatch(MethodArgumentTypeMismatchException e) {
@@ -147,6 +137,39 @@ public class ErrorHandler {
                 HttpStatus.BAD_REQUEST.toString(),
                 "Incorrectly made request.",
                 errorMessage,
+                LocalDateTime.now().format(FORMATTER)
+        );
+    }
+
+    @ExceptionHandler(CommentNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ApiError handleCommentNotFound(CommentNotFoundException ex) {
+        return new ApiError(
+                HttpStatus.NOT_FOUND.toString(),
+                "The requested comment was not found.",
+                ex.getMessage(),
+                LocalDateTime.now().format(FORMATTER)
+        );
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError handleIllegalArgument(IllegalArgumentException ex) {
+        return new ApiError(
+                HttpStatus.BAD_REQUEST.toString(),
+                "Invalid request parameter.",
+                ex.getMessage(),
+                LocalDateTime.now().format(FORMATTER)
+        );
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError handleConstraintViolation(ConstraintViolationException ex) {
+        return new ApiError(
+                HttpStatus.BAD_REQUEST.toString(),
+                "Validation failed.",
+                ex.getMessage(),
                 LocalDateTime.now().format(FORMATTER)
         );
     }
